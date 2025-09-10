@@ -1,574 +1,68 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Detecção de Objetos em Tempo Real</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-      :root {
-        --bg-dark: #111827;
-        --bg-medium: #1F2937;
-        --bg-light: #374151;
-        --border-color: #4B5563;
-        --text-primary: #F3F4F6;
-        --text-secondary: #9CA3AF;
-        --accent-color: #8B5CF6;
-        --accent-color-hover: #7C3AED;
-        --status-ready: #10B981;
-        --status-running: #3B82F6;
-        --status-loading: #F59E0B;
-        --status-error: #EF4444;
-      }
-
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
-
-      body {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        background-color: var(--bg-dark);
-        color: var(--text-primary);
-        line-height: 1.6;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-      }
-
-      .main-wrapper {
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
-      }
-      
-      .header {
-        text-align: center;
-        padding: 2rem 1rem;
-        border-bottom: 1px solid var(--border-color);
-      }
-
-      .header h1 {
-        font-size: 2.25rem;
-        margin-bottom: 0.5rem;
-        font-weight: 700;
-        letter-spacing: -0.02em;
-      }
-
-      .header p {
-        font-size: 1.1rem;
-        color: var(--text-secondary);
-      }
-      
-      .content-grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        flex-grow: 1;
-        max-width: 1600px;
-        margin: 0 auto;
-        width: 100%;
-      }
-      
-      @media (min-width: 1024px) {
-        .content-grid {
-          grid-template-columns: 1fr 380px;
-          gap: 2rem;
-          padding: 2rem;
-        }
-      }
-
-      .video-panel {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 1rem;
-        min-height: 400px;
-      }
-
-      .video-container {
-        position: relative;
-        width: 100%;
-        max-width: 960px;
-        margin: 0 auto;
-        background: #000;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-        border: 1px solid var(--border-color);
-        aspect-ratio: 16 / 9;
-      }
-
-      .video-placeholder {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-        color: var(--text-secondary);
-        padding: 1rem;
-      }
-
-      .placeholder-icon {
-        width: 64px;
-        height: 64px;
-        margin-bottom: 1rem;
-        opacity: 0.5;
-      }
-
-      .video-placeholder h3 {
-        font-size: 1.25rem;
-        margin-bottom: 0.5rem;
-        color: var(--text-primary);
-      }
-      
-      #video, #canvas {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        display: block;
-        object-fit: cover;
-      }
-
-      #overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-      }
-
-      .sidebar {
-        padding: 1rem;
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-      }
-
-      @media (min-width: 1024px) {
-        .sidebar {
-          padding: 0;
-          padding-top: 1rem;
-        }
-      }
-
-      .info-card {
-        background: var(--bg-medium);
-        border-radius: 12px;
-        padding: 1.25rem;
-        border: 1px solid var(--border-color);
-      }
-
-      .card-title {
-        font-size: 1.1rem;
-        font-weight: 600;
-        margin-bottom: 1rem;
-        color: var(--text-primary);
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-      }
-      
-      .card-title svg {
-        width: 20px;
-        height: 20px;
-        color: var(--text-secondary);
-      }
-
-      /* Status Section */
-      .status-content {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-      }
-      
-      .status-icon-wrapper {
-        flex-shrink: 0;
-      }
-
-      .status-icon {
-        width: 24px;
-        height: 24px;
-      }
-      
-      #icon-loading { animation: spin 1.5s linear infinite; }
-      @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-      
-      .status-text {
-        font-weight: 500;
-        font-size: 1rem;
-      }
-
-      /* Instructions Section */
-      .instructions ul {
-        margin-left: 1.25rem;
-        color: var(--text-secondary);
-        font-size: 0.9rem;
-      }
-
-      .instructions li:not(:last-child) {
-        margin-bottom: 0.4rem;
-      }
-
-      /* Controls Section */
-      .controls-grid {
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-      }
-
-      .control-label {
-        font-weight: 500;
-        margin-bottom: 0.5rem;
-        color: var(--text-primary);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        font-size: 0.9rem;
-      }
-      
-      .control-value {
-        background: var(--bg-light);
-        color: var(--text-primary);
-        padding: 0.2rem 0.6rem;
-        border-radius: 999px;
-        font-size: 0.85rem;
-        font-weight: 500;
-        min-width: 40px;
-        text-align: center;
-      }
-
-      .control-description {
-        font-size: 0.85rem;
-        color: var(--text-secondary);
-        margin-bottom: 1rem;
-      }
-
-      .slider {
-        width: 100%;
-        height: 4px;
-        border-radius: 2px;
-        background: var(--bg-light);
-        outline: none;
-        appearance: none;
-        cursor: pointer;
-        transition: all 0.2s ease;
-      }
-      
-      .slider::-webkit-slider-thumb {
-        appearance: none;
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        background: var(--text-primary);
-        cursor: pointer;
-        border: 4px solid var(--accent-color);
-        box-shadow: 0 0 0 2px var(--bg-medium);
-        transition: all 0.2s ease;
-      }
-
-      .slider:hover::-webkit-slider-thumb,
-      .slider:focus::-webkit-slider-thumb {
-        background: var(--accent-color);
-        border-color: var(--accent-color);
-      }
-      
-      .slider:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-      }
-      
-      .slider:disabled::-webkit-slider-thumb {
-        background-color: var(--bg-light);
-        border-color: var(--text-secondary);
-      }
-
-      /* Bounding Box */
-      .bounding-box {
-        position: absolute;
-        box-sizing: border-box;
-        border: solid 2px;
-        border-radius: 6px;
-      }
-
-      .bounding-box-label {
-        color: white;
-        position: absolute;
-        font-size: 12px;
-        font-weight: 500;
-        margin-top: -21px;
-        padding: 3px 8px;
-        border-radius: 4px;
-        white-space: nowrap;
-      }
-      
-      .hidden {
-        display: none !important;
-      }
-    </style>
+    <title>Transformers.js | Real-time object detection</title>
+    <link rel="stylesheet" href="/style.css" />
   </head>
+
   <body>
-    <div class="main-wrapper">
-      <header class="header">
-        <h1>Detecção de Objetos com IA</h1>
-        <p>Análise em tempo real com YOLOv9 via Hugging Face Transformers.js</p>
-      </header>
-
-      <main class="content-grid">
-        <div class="video-panel">
-          <div id="container" class="video-container">
-            <div id="video-placeholder" class="video-placeholder">
-              <svg class="placeholder-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.776 48.776 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
-              </svg>
-              <h3>Aguardando Câmera</h3>
-              <p>Permita o acesso à câmera para iniciar a detecção.</p>
-            </div>
-            <video id="video" autoplay muted playsinline class="hidden"></video>
-            <canvas id="canvas" width="360" height="240" class="hidden"></canvas>
-            <div id="overlay"></div>
-          </div>
-        </div>
-
-        <aside class="sidebar">
-          <div class="info-card">
-            <h3 class="card-title">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg>
-              Status e Instruções
-            </h3>
-            <div class="status-content">
-              <div id="status-icon-wrapper" class="status-icon-wrapper">
-                <svg id="icon-loading" class="status-icon" style="color: var(--status-loading);" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0011.667 0l3.181-3.183m-4.991-2.691V5.006h-4.992a8.25 8.25 0 00-11.667 0v4.992m16.66-4.992l-3.181 3.183m0 0l-3.181 3.183" /></svg>
-                <svg id="icon-ready" class="status-icon hidden" style="color: var(--status-ready);" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                <svg id="icon-running" class="status-icon hidden" style="color: var(--status-running);" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.82m5.84-2.56a12.025 12.025 0 01-4.132 5.064M12 21a9 9 0 100-18 9 9 0 000 18z" /></svg>
-                <svg id="icon-error" class="status-icon hidden" style="color: var(--status-error);" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" /></svg>
-              </div>
-              <div id="status-text" class="status-text">Carregando modelo de IA...</div>
-            </div>
-            <hr style="border-color: var(--border-color); margin: 1rem 0; border-top-width: 1px; border-bottom: 0;">
-            <div class="instructions">
-              <ul>
-                <li>Aguarde o carregamento do modelo.</li>
-                <li>Permita o acesso à câmera quando solicitado.</li>
-                <li>Ajuste os controles para otimizar a detecção.</li>
-                <li>Posicione objetos em frente à câmera.</li>
-              </ul>
-            </div>
-          </div>
-          
-          <div class="info-card">
-            <h3 class="card-title">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" /></svg>
-              Controles de Detecção
-            </h3>
-            <div class="controls-grid">
-              <div class="control-group">
-                <div class="control-label">
-                  <span>Qualidade (Tamanho)</span>
-                  <span id="size-value" class="control-value">128</span>
-                </div>
-                <div class="control-description">Maior é mais preciso, porém mais lento.</div>
-                <input id="size" type="range" min="64" max="256" step="32" value="128" class="slider" disabled />
-              </div>
-
-              <div class="control-group">
-                <div class="control-label">
-                  <span>Confiança Mínima</span>
-                  <span id="threshold-value" class="control-value">0.25</span>
-                </div>
-                <div class="control-description">Aumente para reduzir detecções incorretas.</div>
-                <input id="threshold" type="range" min="0.01" max="1" step="0.01" value="0.25" class="slider" disabled />
-              </div>
-
-              <div class="control-group">
-                <div class="control-label">
-                  <span>Zoom do Vídeo</span>
-                  <span id="scale-value" class="control-value">0.5</span>
-                </div>
-                <div class="control-description">Não afeta a precisão, apenas a visualização.</div>
-                <input id="scale" type="range" min="0.01" max="1" step="0.01" value="0.5" class="slider" disabled />
-              </div>
-            </div>
-          </div>
-        </aside>
-      </main>
+    <h1>
+      Real-time object detection w/
+      <a href="https://github.com/WongKinYiu/yolov9" target="_blank">YOLOv9</a>
+    </h1>
+    <div id="container">
+      <video id="video" autoplay muted playsinline></video>
+      <canvas id="canvas" width="360" height="240"></canvas>
+      <div id="overlay"></div>
     </div>
+    <div id="controls">
+      <div>
+        <label>Image size</label>
+        (<label id="size-value">128</label>)
+        <br />
+        <input
+          id="size"
+          type="range"
+          min="64"
+          max="256"
+          step="32"
+          value="128"
+          disabled
+        />
+      </div>
+      <div>
+        <label>Threshold</label>
+        (<label id="threshold-value">0.25</label>)
+        <br />
+        <input
+          id="threshold"
+          type="range"
+          min="0.01"
+          max="1"
+          step="0.01"
+          value="0.25"
+          disabled
+        />
+      </div>
+      <div>
+        <label>Scale</label>
+        (<label id="scale-value">0.5</label>)
+        <br />
+        <input
+          id="scale"
+          type="range"
+          min="0.01"
+          max="1"
+          step="0.01"
+          value="0.5"
+          disabled
+        />
+      </div>
+    </div>
+    <label id="status"></label>
 
-    <script type="module">
-      import { AutoModel, AutoProcessor, RawImage } from "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.7.1/dist/transformers.min.js";
-
-      // Elementos da interface
-      const statusText = document.getElementById("status-text");
-      const iconWrapper = document.getElementById("status-icon-wrapper");
-      const icons = {
-        loading: document.getElementById("icon-loading"),
-        ready: document.getElementById("icon-ready"),
-        running: document.getElementById("icon-running"),
-        error: document.getElementById("icon-error"),
-      };
-      
-      const container = document.getElementById("container");
-      const overlay = document.getElementById("overlay");
-      const canvas = document.getElementById("canvas");
-      const video = document.getElementById("video");
-      const videoPlaceholder = document.getElementById("video-placeholder");
-      
-      const thresholdSlider = document.getElementById("threshold");
-      const thresholdLabel = document.getElementById("threshold-value");
-      const sizeSlider = document.getElementById("size");
-      const sizeLabel = document.getElementById("size-value");
-      const scaleSlider = document.getElementById("scale");
-      const scaleLabel = document.getElementById("scale-value");
-      
-      let currentStatus = 'loading';
-
-      // Função para atualizar status
-      function updateStatus(type, message) {
-        if (icons[currentStatus]) icons[currentStatus].classList.add("hidden");
-        if (icons[type]) icons[type].classList.remove("hidden");
-        currentStatus = type;
-        statusText.textContent = message;
-      }
-
-      function setStreamSize(width, height) {
-        video.width = canvas.width = Math.round(width);
-        video.height = canvas.height = Math.round(height);
-      }
-
-      // Carregar modelo
-      updateStatus("loading", "Carregando modelo de IA...");
-
-      const model_id = "Xenova/gelan-c_all";
-      const model = await AutoModel.from_pretrained(model_id);
-      const processor = await AutoProcessor.from_pretrained(model_id);
-
-      // Configurar controles
-      let scale = 0.5;
-      scaleSlider.addEventListener("input", () => {
-        scale = Number(scaleSlider.value);
-        if (video.srcObject) { // Apenas atualiza se o vídeo estiver ativo
-          setStreamSize(video.videoWidth * scale, video.videoHeight * scale);
-        }
-        scaleLabel.textContent = scale.toFixed(2);
-      });
-      scaleSlider.disabled = false;
-
-      let threshold = 0.25;
-      thresholdSlider.addEventListener("input", () => {
-        threshold = Number(thresholdSlider.value);
-        thresholdLabel.textContent = threshold.toFixed(2);
-      });
-      thresholdSlider.disabled = false;
-
-      let size = 128;
-      processor.feature_extractor.size = { shortest_edge: size };
-      sizeSlider.addEventListener("input", () => {
-        size = Number(sizeSlider.value);
-        processor.feature_extractor.size = { shortest_edge: size };
-        sizeLabel.textContent = size;
-      });
-      sizeSlider.disabled = false;
-
-      updateStatus("ready", "Modelo pronto. Aguardando câmera...");
-
-      const COLOURS = [
-        "#8B5CF6", "#10B981", "#3B82F6", "#F59E0B", "#EF4444", 
-        "#6366F1", "#EC4899", "#22D3EE", "#F97316", "#A855F7"
-      ];
-
-      // Função para renderizar caixas de detecção
-      function renderBox([xmin, ymin, xmax, ymax, score, id], [w, h]) {
-        if (score < threshold) return;
-
-        const color = COLOURS[id % COLOURS.length];
-
-        const boxElement = document.createElement("div");
-        boxElement.className = "bounding-box";
-        Object.assign(boxElement.style, {
-          borderColor: color,
-          left: (100 * xmin) / w + "%",
-          top: (100 * ymin) / h + "%",
-          width: (100 * (xmax - xmin)) / w + "%",
-          height: (100 * (ymax - ymin)) / h + "%",
-        });
-
-        const labelElement = document.createElement("span");
-        labelElement.textContent = `${model.config.id2label[id]} ${(100 * score).toFixed(1)}%`;
-        labelElement.className = "bounding-box-label";
-        labelElement.style.backgroundColor = color;
-
-        boxElement.appendChild(labelElement);
-        overlay.appendChild(boxElement);
-      }
-
-      let isProcessing = false;
-      let previousTime;
-      const context = canvas.getContext("2d", { willReadFrequently: true });
-
-      async function updateCanvas() {
-        const { width, height } = canvas;
-        context.drawImage(video, 0, 0, width, height);
-
-        if (!isProcessing) {
-          isProcessing = true;
-          
-          const pixelData = context.getImageData(0, 0, width, height).data;
-          const image = new RawImage(pixelData, width, height, 4);
-
-          const inputs = await processor(image);
-          const { outputs } = await model(inputs);
-
-          overlay.innerHTML = "";
-
-          const sizes = inputs.reshaped_input_sizes[0].reverse();
-          outputs.tolist().forEach((x) => renderBox(x, sizes));
-
-          if (previousTime !== undefined) {
-            const fps = 1000 / (performance.now() - previousTime);
-            updateStatus("running", `Analisando... (${fps.toFixed(1)} FPS)`);
-          }
-          previousTime = performance.now();
-          isProcessing = false;
-        }
-
-        window.requestAnimationFrame(updateCanvas);
-      }
-
-      // Inicializar câmera
-      navigator.mediaDevices
-        .getUserMedia({ video: true })
-        .then((stream) => {
-          video.srcObject = stream;
-          video.onloadedmetadata = () => {
-            video.play();
-
-            videoPlaceholder.classList.add("hidden");
-            video.classList.remove("hidden");
-            canvas.classList.remove("hidden");
-
-            const { width, height } = video.getVideoSettings();
-            setStreamSize(width * scale, height * scale);
-            
-            updateStatus("running", "Câmera ativa! Posicione objetos.");
-            window.requestAnimationFrame(updateCanvas);
-          };
-        })
-        .catch((error) => {
-          console.error("Erro ao acessar câmera:", error);
-          updateStatus("error", "Erro ao acessar a câmera.");
-          videoPlaceholder.innerHTML = `
-            <svg class="placeholder-icon" style="color: var(--status-error);" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-            </svg>
-            <h3>Acesso à câmera negado</h3>
-            <p>Verifique as permissões do navegador e atualize a página.</p>
-          `;
-        });
-    </script>
+    <script type="module" src="/main.js"></script>
   </body>
 </html>
