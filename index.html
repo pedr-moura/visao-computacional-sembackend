@@ -1,242 +1,228 @@
+<!doctype html>
+<html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Transformers.js | Real-time object detection</title>
-  
+  <title>Transformers.js | Detecção de Objetos em Tempo Real</title>
   <style>
-    /* Importa uma fonte mais moderna */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
-
-    /* Variáveis de Cor para fácil customização */
+    /* --- Estilos Globais e Reset --- */
     :root {
-      --bg-color: #121212;
-      --surface-color: #1e1e1e;
-      --primary-color: #03dac6;
-      --text-color: #e0e0e0;
-      --text-secondary-color: #a0a0a0;
-      --border-radius: 12px;
-      --shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      --bg-color: #111827;
+      /* Cinza-azulado escuro */
+      --card-color: #1f2937;
+      /* Cinza-azulado um pouco mais claro */
+      --primary-text-color: #f9fafb;
+      /* Branco suave */
+      --secondary-text-color: #9ca3af;
+      /* Cinza claro */
+      --accent-color: #38bdf8;
+      /* Azul céu vibrante */
+      --accent-hover-color: #0ea5e9;
+      --border-color: #374151;
+      --shadow-color: rgba(56, 189, 248, 0.1);
     }
 
-    /* Reset básico e Estilos Globais */
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
 
-    html, body {
-      font-family: 'Inter', sans-serif;
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica,
+        Arial, sans-serif;
       background-color: var(--bg-color);
-      color: var(--text-color);
+      color: var(--primary-text-color);
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 2rem 1rem;
+      justify-content: center;
       min-height: 100vh;
+      padding: 2rem;
     }
 
-    /* Título */
+    /* --- Título e Cabeçalho --- */
     h1 {
-      font-size: 2rem;
+      font-size: 2.25rem;
       font-weight: 700;
-      margin-bottom: 2rem;
       text-align: center;
+      margin-bottom: 2rem;
+      color: var(--primary-text-color);
     }
 
     h1 a {
-      color: var(--primary-color);
+      color: var(--accent-color);
       text-decoration: none;
-      transition: color 0.2s ease;
+      transition: color 0.3s ease;
     }
 
     h1 a:hover {
-      color: #ffffff;
+      color: var(--accent-hover-color);
       text-decoration: underline;
     }
 
-    /* Container do Vídeo */
+    /* --- Container Principal (Vídeo e Canvas) --- */
     #container {
       position: relative;
       width: 100%;
-      max-width: 640px; /* Aumenta o tamanho máximo para melhor visualização */
-      aspect-ratio: 4 / 3; /* Proporção mais comum para webcams */
-      margin-bottom: 2rem;
-      border-radius: var(--border-radius);
-      box-shadow: var(--shadow);
-      overflow: hidden; /* Garante que os filhos não "vazem" */
+      max-width: 640px;
+      /* Aumentado para melhor visualização */
+      aspect-ratio: 16 / 9;
+      border-radius: 0.75rem;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 8px 32px 0 var(--shadow-color);
       background-color: #000;
     }
 
-    #video, #canvas, #overlay {
+    #video,
+    #canvas,
+    #overlay {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
     }
-    
+
     #video {
-      object-fit: cover; /* Faz o vídeo cobrir todo o container */
+      object-fit: cover;
+      z-index: 1;
+    }
+
+    #canvas {
+      z-index: 2;
+      /* O canvas precisa estar acima do vídeo */
     }
 
     #overlay {
-        /* O overlay já é transparente, apenas para garantir */
-        background: transparent;
+      z-index: 3;
+      /* A sobreposição (bounding boxes) acima de tudo */
     }
 
-    /* Container dos Controles */
+    /* --- Painel de Controles --- */
     #controls {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      display: flex;
+      justify-content: space-between;
       gap: 1.5rem;
       width: 100%;
       max-width: 640px;
+      margin-top: 2rem;
+      background-color: var(--card-color);
       padding: 1.5rem;
-      background-color: var(--surface-color);
-      border-radius: var(--border-radius);
-      box-shadow: var(--shadow);
-      margin-bottom: 1.5rem;
+      border-radius: 0.75rem;
+      border: 1px solid var(--border-color);
     }
 
-    #controls > div {
+    #controls>div {
+      flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 0.5rem;
     }
 
-    /* Rótulos (Labels) */
-    label {
+    #controls label {
       font-weight: 500;
-      color: var(--text-secondary-color);
+      color: var(--secondary-text-color);
     }
 
-    #size-value, #threshold-value, #scale-value {
-      color: var(--text-color);
-      font-weight: 500;
-      background-color: var(--bg-color);
-      padding: 0.2rem 0.5rem;
-      border-radius: 6px;
-      min-width: 40px;
-      text-align: center;
+    #controls #size-value,
+    #controls #threshold-value,
+    #controls #scale-value {
+      color: var(--primary-text-color);
+      font-weight: 600;
     }
 
-    /* Estilização Customizada para o Range Input */
-    input[type="range"] {
+    /* --- Estilização dos Sliders (input[type="range"]) --- */
+    input[type='range'] {
       -webkit-appearance: none;
-      appearance: none;
       width: 100%;
       height: 8px;
-      background: #333;
+      background: var(--border-color);
       border-radius: 5px;
       outline: none;
-      cursor: pointer;
       transition: opacity 0.2s;
     }
 
-    input[type="range"]::-webkit-slider-thumb {
+    input[type='range']::-webkit-slider-thumb {
       -webkit-appearance: none;
       appearance: none;
       width: 20px;
       height: 20px;
-      background: var(--primary-color);
-      border-radius: 50%;
-      border: 2px solid var(--surface-color);
+      background: var(--accent-color);
       cursor: pointer;
-      transition: background-color 0.2s ease;
-    }
-
-    input[type="range"]::-moz-range-thumb {
-      width: 18px;
-      height: 18px;
-      background: var(--primary-color);
       border-radius: 50%;
-      border: 2px solid var(--surface-color);
-      cursor: pointer;
-      transition: background-color 0.2s ease;
-    }
-
-    input[type="range"]:hover::-webkit-slider-thumb {
-        background-color: #fff;
-    }
-    input[type="range"]:hover::-moz-range-thumb {
-        background-color: #fff;
+      border: 2px solid var(--card-color);
+      transition: background-color 0.3s ease;
     }
     
-    input[type="range"]:disabled {
-        cursor: not-allowed;
-        opacity: 0.5;
+    input[type='range']::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      background: var(--accent-color);
+      cursor: pointer;
+      border-radius: 50%;
+      border: 2px solid var(--card-color);
     }
 
-    /* Mensagem de Status */
+    input[type='range']:hover::-webkit-slider-thumb {
+        background-color: var(--accent-hover-color);
+    }
+
+    input[type='range']:disabled {
+      opacity: 0.5;
+    }
+    
+    input[type='range']:disabled::-webkit-slider-thumb {
+        background: var(--secondary-text-color);
+        cursor: not-allowed;
+    }
+
+    /* --- Status da Aplicação --- */
     #status {
-      margin-top: 1rem;
-      font-style: italic;
-      color: var(--text-secondary-color);
-      min-height: 1.2em; /* Evita que a página "pule" quando o texto aparece */
+      margin-top: 1.5rem;
+      font-size: 0.9rem;
+      color: var(--secondary-text-color);
+      min-height: 20px;
+      /* Garante que o layout não pule */
+      text-align: center;
     }
   </style>
-
 </head>
 
-  <body>
-    <h1>
-      Real-time object detection w/
-      <a href="https://github.com/WongKinYiu/yolov9" target="_blank">YOLOv9</a>
-    </h1>
-    <div id="container">
-      <video id="video" autoplay muted playsinline></video>
-      <canvas id="canvas" width="360" height="240"></canvas>
-      <div id="overlay"></div>
-    </div>
-    <div id="controls">
-      <div>
-        <label>Image size</label>
-        (<label id="size-value">128</label>)
-        <br />
-        <input
-          id="size"
-          type="range"
-          min="64"
-          max="256"
-          step="32"
-          value="128"
-          disabled
-        />
-      </div>
-      <div>
-        <label>Threshold</label>
-        (<label id="threshold-value">0.25</label>)
-        <br />
-        <input
-          id="threshold"
-          type="range"
-          min="0.01"
-          max="1"
-          step="0.01"
-          value="0.25"
-          disabled
-        />
-      </div>
-      <div>
-        <label>Scale</label>
-        (<label id="scale-value">0.5</label>)
-        <br />
-        <input
-          id="scale"
-          type="range"
-          min="0.01"
-          max="1"
-          step="0.01"
-          value="0.5"
-          disabled
-        />
-      </div>
-    </div>
-    <label id="status"></label>
+<body>
+  <h1>
+    Detecção de Objetos com
+    <a href="https://github.com/WongKinYiu/yolov9" target="_blank">YOLOv9</a>
+  </h1>
 
-    <script type="module" src="/main.js"></script>
-  </body>
+  <div id="container">
+    <video id="video" autoplay muted playsinline></video>
+    <canvas id="canvas" width="640" height="360"></canvas>
+    <div id="overlay"></div>
+  </div>
+
+  <div id="controls">
+    <div>
+      <label for="size">Tamanho da Imagem (<span id="size-value">128</span>px)</label>
+      <input id="size" type="range" min="64" max="256" step="32" value="128" disabled />
+    </div>
+    <div>
+      <label for="threshold">Confiança Mín. (<span id="threshold-value">0.25</span>)</label>
+      <input id="threshold" type="range" min="0.01" max="1" step="0.01" value="0.25" disabled />
+    </div>
+    <div>
+      <label for="scale">Escala (<span id="scale-value">0.5</span>)</label>
+      <input id="scale" type="range" min="0.01" max="1" step="0.01" value="0.5" disabled />
+    }
+    </div>
+  </div>
+
+  <label id="status">Carregando modelo... Por favor, aguarde.</label>
+
+  <script type="module" src="/main.js"></script>
+</body>
+
 </html>
-
