@@ -1,199 +1,68 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Transformers.js | Real-time object detection</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Transformers.js | Detecção de Objetos em Tempo Real</title>
-  <style>
-    :root {
-      --bg-color: #111827;
-      --card-color: #1f2937;
-      --primary-text-color: #f9fafb;
-      --secondary-text-color: #9ca3af;
-      --accent-color: #38bdf8;
-      --accent-hover-color: #0ea5e9;
-      --border-color: #374151;
-      --shadow-color: rgba(56, 189, 248, 0.1);
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      background-color: var(--bg-color);
-      color: var(--primary-text-color);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      padding: 2rem;
-    }
-
-    h1 {
-      font-size: 2.25rem;
-      font-weight: 700;
-      text-align: center;
-      margin-bottom: 2rem;
-      color: var(--primary-text-color);
-    }
-
-    h1 a {
-      color: var(--accent-color);
-      text-decoration: none;
-      transition: color 0.3s ease;
-    }
-
-    h1 a:hover {
-      color: var(--accent-hover-color);
-      text-decoration: underline;
-    }
-
-    #container {
-      position: relative;
-      width: 100%;
-      max-width: 640px;
-      /* CORREÇÃO FINAL APLICADA AQUI */
-      aspect-ratio: 3 / 2; /* Proporção 3:2 para corresponder ao canvas de 360x240 */
-      border-radius: 0.75rem;
-      overflow: hidden;
-      border: 1px solid var(--border-color);
-      box-shadow: 0 8px 32px 0 var(--shadow-color);
-      background-color: #000;
-    }
-
-    #video,
-    #canvas,
-    #overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-    }
-
-    #video { object-fit: cover; z-index: 1; }
-    #canvas { z-index: 2; }
-    #overlay { z-index: 3; }
-
-    #controls {
-      display: flex;
-      justify-content: space-between;
-      gap: 1.5rem;
-      width: 100%;
-      max-width: 640px;
-      margin-top: 2rem;
-      background-color: var(--card-color);
-      padding: 1.5rem;
-      border-radius: 0.75rem;
-      border: 1px solid var(--border-color);
-    }
-
-    #controls>div {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    #controls label {
-      font-weight: 500;
-      color: var(--secondary-text-color);
-    }
-
-    #controls #size-value,
-    #controls #threshold-value,
-    #controls #scale-value {
-      color: var(--primary-text-color);
-      font-weight: 600;
-    }
-
-    input[type='range'] {
-      -webkit-appearance: none;
-      width: 100%;
-      height: 8px;
-      background: var(--border-color);
-      border-radius: 5px;
-      outline: none;
-      transition: opacity 0.2s;
-    }
-
-    input[type='range']::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 20px;
-      height: 20px;
-      background: var(--accent-color);
-      cursor: pointer;
-      border-radius: 50%;
-      border: 2px solid var(--card-color);
-      transition: background-color 0.3s ease;
-    }
-    
-    input[type='range']::-moz-range-thumb {
-      width: 20px;
-      height: 20px;
-      background: var(--accent-color);
-      cursor: pointer;
-      border-radius: 50%;
-      border: 2px solid var(--card-color);
-    }
-
-    input[type='range']:hover::-webkit-slider-thumb {
-        background-color: var(--accent-hover-color);
-    }
-
-    input[type='range']:disabled {
-      opacity: 0.5;
-    }
-    
-    input[type='range']:disabled::-webkit-slider-thumb {
-        background: var(--secondary-text-color);
-        cursor: not-allowed;
-    }
-
-    #status {
-      margin-top: 1.5rem;
-      font-size: 0.9rem;
-      color: var(--secondary-text-color);
-      min-height: 20px;
-      text-align: center;
-    }
-  </style>
-</head>
-
-<body>
-  <h1>
-    Detecção de Objetos com
-    <a href="https://github.com/WongKinYiu/yolov9" target="_blank">YOLOv9</a>
-  </h1>
-
-  <div id="container">
-    <video id="video" autoplay muted playsinline></video>
-    <canvas id="canvas" width="360" height="240"></canvas>
-    <div id="overlay"></div>
-  </div>
-
-  <div id="controls">
-    <div>
-      <label for="size">Tamanho da Imagem (<span id="size-value">128</span>px)</label>
-      <input id="size" type="range" min="64" max="256" step="32" value="128" disabled />
+  <body>
+    <h1>
+      Real-time object detection w/
+      <a href="https://github.com/WongKinYiu/yolov9" target="_blank">YOLOv9</a>
+    </h1>
+    <div id="container">
+      <video id="video" autoplay muted playsinline></video>
+      <canvas id="canvas" width="360" height="240"></canvas>
+      <div id="overlay"></div>
     </div>
-    <div>
-      <label for="threshold">Confiança Mín. (<span id="threshold-value">0.25</span>)</label>
-      <input id="threshold" type="range" min="0.01" max="1" step="0.01" value="0.25" disabled />
+    <div id="controls">
+      <div>
+        <label>Image size</label>
+        (<label id="size-value">128</label>)
+        <br />
+        <input
+          id="size"
+          type="range"
+          min="64"
+          max="256"
+          step="32"
+          value="128"
+          disabled
+        />
+      </div>
+      <div>
+        <label>Threshold</label>
+        (<label id="threshold-value">0.25</label>)
+        <br />
+        <input
+          id="threshold"
+          type="range"
+          min="0.01"
+          max="1"
+          step="0.01"
+          value="0.25"
+          disabled
+        />
+      </div>
+      <div>
+        <label>Scale</label>
+        (<label id="scale-value">0.5</label>)
+        <br />
+        <input
+          id="scale"
+          type="range"
+          min="0.01"
+          max="1"
+          step="0.01"
+          value="0.5"
+          disabled
+        />
+      </div>
     </div>
-    <div>
-      <label for="scale">Escala (<span id="scale-value">0.5</span>)</label>
-      <input id="scale" type="range" min="0.01" max="1" step="0.01" value="0.5" disabled />
-    </div>
-  </div>
+    <label id="status"></label>
 
-  <label id="status">Carregando modelo... Por favor, aguarde.</label>
-
-  <script type="module" src="/main.js"></script>
-</body>
-
+    <script type="module" src="/main.js"></script>
+  </body>
 </html>
