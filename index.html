@@ -67,7 +67,6 @@
       position: relative;
       width: 100%;
       max-width: 640px;
-      /* Aumentado para melhor visualização */
       aspect-ratio: 16 / 9;
       border-radius: 0.75rem;
       overflow: hidden;
@@ -93,12 +92,10 @@
 
     #canvas {
       z-index: 2;
-      /* O canvas precisa estar acima do vídeo */
     }
 
     #overlay {
       z-index: 3;
-      /* A sobreposição (bounding boxes) acima de tudo */
     }
 
     /* --- Painel de Controles --- */
@@ -186,7 +183,6 @@
       font-size: 0.9rem;
       color: var(--secondary-text-color);
       min-height: 20px;
-      /* Garante que o layout não pule */
       text-align: center;
     }
   </style>
@@ -200,7 +196,7 @@
 
   <div id="container">
     <video id="video" autoplay muted playsinline></video>
-    <canvas id="canvas" width="640" height="360"></canvas>
+    <canvas id="canvas" width="360" height="240"></canvas>
     <div id="overlay"></div>
   </div>
 
@@ -216,7 +212,6 @@
     <div>
       <label for="scale">Escala (<span id="scale-value">0.5</span>)</label>
       <input id="scale" type="range" min="0.01" max="1" step="0.01" value="0.5" disabled />
-    }
     </div>
   </div>
 
