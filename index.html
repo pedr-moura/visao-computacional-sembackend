@@ -6,32 +6,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Transformers.js | Detecção de Objetos em Tempo Real</title>
   <style>
-    /* --- Estilos Globais e Reset --- */
     :root {
       --bg-color: #111827;
-      /* Cinza-azulado escuro */
       --card-color: #1f2937;
-      /* Cinza-azulado um pouco mais claro */
       --primary-text-color: #f9fafb;
-      /* Branco suave */
       --secondary-text-color: #9ca3af;
-      /* Cinza claro */
       --accent-color: #38bdf8;
-      /* Azul céu vibrante */
       --accent-hover-color: #0ea5e9;
       --border-color: #374151;
       --shadow-color: rgba(56, 189, 248, 0.1);
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica,
-        Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       background-color: var(--bg-color);
       color: var(--primary-text-color);
       display: flex;
@@ -42,7 +31,6 @@
       padding: 2rem;
     }
 
-    /* --- Título e Cabeçalho --- */
     h1 {
       font-size: 2.25rem;
       font-weight: 700;
@@ -62,12 +50,12 @@
       text-decoration: underline;
     }
 
-    /* --- Container Principal (Vídeo e Canvas) --- */
     #container {
       position: relative;
       width: 100%;
       max-width: 640px;
-      aspect-ratio: 16 / 9;
+      /* CORREÇÃO FINAL APLICADA AQUI */
+      aspect-ratio: 3 / 2; /* Proporção 3:2 para corresponder ao canvas de 360x240 */
       border-radius: 0.75rem;
       overflow: hidden;
       border: 1px solid var(--border-color);
@@ -85,20 +73,10 @@
       height: 100%;
     }
 
-    #video {
-      object-fit: cover;
-      z-index: 1;
-    }
+    #video { object-fit: cover; z-index: 1; }
+    #canvas { z-index: 2; }
+    #overlay { z-index: 3; }
 
-    #canvas {
-      z-index: 2;
-    }
-
-    #overlay {
-      z-index: 3;
-    }
-
-    /* --- Painel de Controles --- */
     #controls {
       display: flex;
       justify-content: space-between;
@@ -132,7 +110,6 @@
       font-weight: 600;
     }
 
-    /* --- Estilização dos Sliders (input[type="range"]) --- */
     input[type='range'] {
       -webkit-appearance: none;
       width: 100%;
@@ -177,7 +154,6 @@
         cursor: not-allowed;
     }
 
-    /* --- Status da Aplicação --- */
     #status {
       margin-top: 1.5rem;
       font-size: 0.9rem;
