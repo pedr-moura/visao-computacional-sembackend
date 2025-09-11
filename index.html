@@ -1,67 +1,73 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Transformers.js | Real-time object detection</title>
+    <title>Detecção de Objetos em Tempo Real com YOLOv9</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" />
     <link rel="stylesheet" href="/style.css" />
   </head>
 
   <body>
-    <h1>
-      Real-time object detection w/
-      <a href="https://github.com/WongKinYiu/yolov9" target="_blank">YOLOv9</a>
-    </h1>
-    <div id="container">
-      <video id="video" autoplay muted playsinline></video>
-      <canvas id="canvas" width="360" height="240"></canvas>
-      <div id="overlay"></div>
-    </div>
-    <div id="controls">
-      <div>
-        <label>Image size</label>
-        (<label id="size-value">128</label>)
-        <br />
-        <input
-          id="size"
-          type="range"
-          min="64"
-          max="256"
-          step="32"
-          value="128"
-          disabled
-        />
+    <header>
+      <h1>Detecção de Objetos com <a href="https://github.com/WongKinYiu/yolov9" target="_blank" rel="noopener noreferrer">YOLOv9</a></h1>
+      <p class="subtitle">Uma prova de conceito prática usando Transformers.js para detecção em tempo real via webcam.</p>
+    </header>
+
+    <main>
+      <div id="container">
+        <video id="video" autoplay muted playsinline></video>
+        <canvas id="canvas"></canvas>
+        <div id="overlay"></div>
       </div>
-      <div>
-        <label>Threshold</label>
-        (<label id="threshold-value">0.25</label>)
-        <br />
-        <input
-          id="threshold"
-          type="range"
-          min="0.01"
-          max="1"
-          step="0.01"
-          value="0.25"
-          disabled
-        />
+
+      <div id="controls">
+        <div class="control-group">
+          <label for="size">Tamanho da imagem <span class="value" id="size-value">128</span></label>
+          <input id="size" type="range" min="64" max="256" step="32" value="128" />
+          <p class="description">Ajuste o tamanho da imagem processada para equilibrar desempenho e precisão.</p>
+        </div>
+
+        <div class="control-group">
+          <label for="threshold">Confiabilidade <span class="value" id="threshold-value">0.25</span></label>
+          <input id="threshold" type="range" min="0.01" max="1" step="0.01" value="0.25" />
+          <p class="description">Defina o limiar mínimo de confiança para exibir detecções.</p>
+        </div>
+
+        <div class="control-group">
+          <label for="scale">Escala <span class="value" id="scale-value">0.5</span></label>
+          <input id="scale" type="range" min="0.01" max="1" step="0.01" value="0.5" />
+          <p class="description">Ajuste a escala da imagem para otimizar a detecção em diferentes resoluções.</p>
+        </div>
+
+        <div class="control-group">
+          <label for="brightness">Brilho <span class="value" id="brightness-value">1.0</span></label>
+          <input id="brightness" type="range" min="0" max="2" step="0.1" value="1.0" />
+        </div>
+
+        <div class="control-group">
+          <label for="contrast">Contraste <span class="value" id="contrast-value">1.0</span></label>
+          <input id="contrast" type="range" min="0" max="2" step="0.1" value="1.0" />
+        </div>
+
+        <div class="control-group">
+          <label for="saturation">Saturação <span class="value" id="saturation-value">1.0</span></label>
+          <input id="saturation" type="range" min="0" max="2" step="0.1" value="1.0" />
+        </div>
+
+        <div class="control-group toggle-group" style="display: none;">
+          <label for="flip-horizontal">Inverter vídeo horizontalmente</label>
+          <input type="checkbox" id="flip-horizontal" />
+          <p class="description">Ative para espelhar o vídeo da webcam, como em um modo selfie.</p>
+        </div>
       </div>
-      <div>
-        <label>Scale</label>
-        (<label id="scale-value">0.5</label>)
-        <br />
-        <input
-          id="scale"
-          type="range"
-          min="0.01"
-          max="1"
-          step="0.01"
-          value="0.5"
-          disabled
-        />
-      </div>
-    </div>
-    <label id="status"></label>
+
+      <div id="status" aria-live="polite">Carregando modelo...</div>
+    </main>
+
+    <footer>
+      <p>Desenvolvido com Transformers.js | <a href="https://xenova.github.io/transformers.js/" target="_blank" rel="noopener noreferrer">Saiba mais</a></p>
+    </footer>
 
     <script type="module" src="/main.js"></script>
   </body>
